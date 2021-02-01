@@ -15,7 +15,7 @@ class MemoryGame extends BaseGame {
   void render(Canvas canvas) {
     Rect bgRect = Rect.fromLTWH(0, 0, screenSize.width, screenSize.height);
     Paint bgPaint = Paint();
-    bgPaint.color = Color(0xffff0000);
+    bgPaint.color = Color(0xffffff00);
     canvas.drawRect(bgRect, bgPaint);
   }
 
