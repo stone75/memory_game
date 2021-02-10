@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:flame/flame.dart';
@@ -18,6 +19,9 @@ class MemoryGame extends BaseGame {
   Background bg;
   Frame frame;
   List<Card> cards;
+  List<int> selectedIndex;
+  List<int> selectedValue;
+  int selectSize;
 
   MemoryGame() {
     init();
@@ -29,33 +33,60 @@ class MemoryGame extends BaseGame {
     bg = Background(this);
     frame = Frame(this);
     cards = List<Card>();
+    List<int> values = List<int>();
+    selectedIndex = List<int>();
+    selectedValue = List<int>();
+    selectSize = 2;
+
+    for (int i=0; i<8; i++) {
+      values.add(i);
+      values.add(i);
+    }
+    values.shuffle(Random.secure());
+
     for (int i = 0; i < 16; i++) {
-      cards.add(Card(this, i));
+      cards.add(Card(this, i, values[i]));
     }
   }
 
   void render(Canvas canvas) {
     bg.render(canvas);
     frame.render(canvas);
-    // card.render(canvas);
     cards.forEach((element) => element.render(canvas));
   }
 
-  void update(double t) {}
+  void update(double t) {
+    cards.forEach((element) => element.update(t));
+  }
 
   void onTapDown(TapDownDetails d) {
-    // music button
-    // if (!isHandled && musicButton.rect.contains(d.globalPosition)) {
-    //   musicButton.onTapDown();
-    //   // isHandled = true;
-    //   return;
-    // }
     cards.forEach((element) {
       if (element.rectCard.contains(d.globalPosition)) {
+        if (element.isCleared) {
+          return;
+        }
+
         element.onTabDown();
+
+        selectedIndex.add(element.index);
+        selectedValue.add(element.value);
+
+        if (selectedValue.length == selectSize) {
+          if (checkSelected()) {
+            for (int i=0; i<selectedIndex.length; i++) {
+              cards[selectedIndex[i]].setClear();
+            }
+          } else {
+            for (int i=0; i<selectedIndex.length; i++) {
+              cards[selectedIndex[i]].onTabDown();
+            }
+          }
+
+          selectedIndex.clear();
+          selectedValue.clear();
+        }
       }
     });
-
   }
 
 
@@ -67,5 +98,22 @@ class MemoryGame extends BaseGame {
     tileGap = tileWidth / 10;
 
     super.resize(size);
+  }
+
+  bool checkSelected() {
+    int targetValue = -1;
+
+    for (int i=0; i<selectSize; i++) {
+      if (targetValue == -1) {
+        targetValue = cards[selectedIndex[i]].value;
+        continue;
+      }
+
+      if (cards[selectedIndex[i]].value != targetValue) {
+        return false;
+      }
+    }
+
+    return true;
   }
 }
